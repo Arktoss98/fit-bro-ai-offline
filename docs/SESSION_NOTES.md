@@ -75,8 +75,7 @@ src/
 ### Następna sesja — priorytety
 
 **Priorytet 1 — Integracja Gemma 4 E4B:**
-- [ ] Sprawdzić czy model się pobrał (`ls -lah ~/fit-bro-ai-offline/models/*.gguf` — powinien być ~5 GB)
-- [ ] Jeśli nie — wznowić: `cd ~/fit-bro-ai-offline/models && wget -c "https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf" -O gemma-4-E4B-it-Q4_K_M.gguf`
+- [x] Model pobrany! `~/fit-bro-ai-offline/models/gemma-4-E4B-it-Q4_K_M.gguf` (4,98 GB)
 - [ ] `npx expo prebuild` (bare workflow, wymagane dla native modules)
 - [ ] Zainstalować `llama.rn` (react-native-llama) — bindingil llama.cpp
 - [ ] Podłączyć prawdziwy inference w `aiService.ts`
