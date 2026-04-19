@@ -1,114 +1,116 @@
 # Notatki sesji — FIT BRO AI OFFLINE
 
-## Sesja 2 — 2026-04-19
+## Sesja 2 — 2026-04-19 (kontynuacja)
 
 ### Co zostało zrobione
 
 1. **Persystencja danych (AsyncStorage):**
    - `src/services/storage.ts` — zapis/odczyt profilu, historii treningów, czatu, timera, osobowości
-   - Hydratacja store na starcie — dane użytkownika przeżywają restart aplikacji
-   - Loading screen podczas wczytywania danych
+   - Hydratacja store na starcie — dane przeżywają restart aplikacji
+   - Loading screen podczas wczytywania
 
-2. **Serwis AI:**
-   - `src/services/aiService.ts` — kompletna architektura z placeholder inference
-   - System promptów dla 5 osobowości trenera (Arnold/Rocky/Instruktor/Zen/Custom)
-   - Prompty w 3 językach (PL, DE, EN)
-   - Kontekst użytkownika (profil, cel, poziom) wstrzykiwany do systemu
+2. **Serwis AI (kompletna architektura):**
+   - `src/services/aiService.ts` — placeholder inference z pełną architekturą
+   - 5 osobowości trenera (Arnold/Rocky/Instruktor/Zen/Custom) × 3 języki
+   - Kontekst użytkownika (profil, cel, poziom) wstrzykiwany do promptów
    - Placeholder odpowiedzi kontekstowe (trening/dieta/zdrowie)
-   - Streaming tokenów do UI (symulowany)
-   - Architektura gotowa na podpięcie llama.cpp / LiteRT-LM
+   - Streaming tokenów do UI
+   - Gotowe na podpięcie llama.cpp
 
 3. **Nowe ekrany:**
-   - `SettingsScreen` — profil z BMI, statystyki, wybór osobowości, język, reset
-   - `ExerciseDetailScreen` — instrukcje krok po kroku, parametry, mięśnie, sprzęt
+   - `SettingsScreen` — profil z BMI, statystyki, osobowość, język, reset
+   - `ExerciseDetailScreen` — instrukcje krok po kroku, parametry, mięśnie
+   - `ActiveWorkoutScreen` — pełny flow treningu:
+     - Ekran gotowości → start → serie z odpoczynkami → podsumowanie
+     - Timer per seria, wibracje, pasek postępu
+     - Zapis ukończonego treningu do historii
 
-4. **Aktualizacje istniejących ekranów:**
-   - `ChatScreen` — podłączony do AIService ze streamingiem, kursorowym efektem pisania
-   - `ExercisesScreen` — klikanie na ćwiczenie otwiera szczegóły
-   - `AppNavigator` — 5 tabów (+ Profil), loading screen, hydratacja
+4. **Rozbudowa istniejących:**
+   - `HomeScreen` — szybki start uruchamia trening, streak, motywacja
+   - `ExercisesScreen` — klikanie otwiera szczegóły
+   - `AppNavigator` — 5 tabów, loading screen, hydratacja
+   - Biblioteka ćwiczeń: **30 ćwiczeń** w 8 kategoriach × 3 języki
 
-5. **Pobieranie modelu Gemma 4 E4B:**
-   - Źródło: `unsloth/gemma-4-E4B-it-GGUF` z Hugging Face
+5. **Konfiguracja:**
+   - `app.json` — dark theme, bundle IDs, uprawnienia, scheme URL
+   - `CLAUDE.md` — instrukcje dla przyszłych sesji
+
+6. **Pobieranie modelu Gemma 4 E4B:**
+   - Źródło: `unsloth/gemma-4-E4B-it-GGUF` (Hugging Face)
    - Plik: `gemma-4-E4B-it-Q4_K_M.gguf` (~5 GB)
-   - Status: **POBIERANIE TRWA W TLE** (process PID aktywny)
-   - Lokalizacja: `/home/arek/fit-bro-ai-offline/models/`
-   - **UWAGA**: Po pobraniu model będzie w `models/` ale jest w `.gitignore` (za duży na git)
+   - Status: **POBIERANIE TRWA W TLE** (wget, ~10 MB/s)
+   - Lokalizacja: `/home/arek/fit-bro-ai-offline/models/gemma-4-E4B-it-Q4_K_M.gguf`
+   - Komenda sprawdzenia: `ls -lah /home/arek/fit-bro-ai-offline/models/*.gguf`
+   - **UWAGA**: huggingface-hub xet transfer nie działa na tym laptopie (4 GB RAM), wget działa OK
 
-6. **TypeScript: 0 błędów**
-7. **Zainstalowane zależności:** `@react-native-async-storage/async-storage`
+7. **TypeScript: 0 błędów** (po każdej zmianie)
 
-### Aktualny stan plików (łącznie sesja 1+2)
+### Aktualny stan plików
 
 ```
 src/
 ├── config/theme.ts                    ✅ Motyw ciemny
 ├── i18n/{pl,de,en,index}.ts           ✅ Kompletne tłumaczenia
-├── models/types.ts                    ✅ Pełny system typów
-├── navigation/AppNavigator.tsx        ✅ Onboarding + 5 tabów + hydratacja
+├── models/types.ts                    ✅ System typów
+├── navigation/AppNavigator.tsx        ✅ 5 tabów + hydratacja + loading
 ├── screens/
 │   ├── OnboardingScreen.tsx           ✅ 3 slajdy
 │   ├── DisclaimerScreen.tsx           ✅ MDR + AI Act
-│   ├── ParqScreen.tsx                 ✅ 7 pytań
+│   ├── ParqScreen.tsx                 ✅ 7 pytań PAR-Q
 │   ├── ProfileSetupScreen.tsx         ✅ Formularz profilu
-│   ├── HomeScreen.tsx                 ✅ Statystyki + szybki start
+│   ├── HomeScreen.tsx                 ✅ Statystyki + streak + szybki start → trening
 │   ├── ChatScreen.tsx                 ✅ Chat + streaming AI
-│   ├── ExercisesScreen.tsx            ✅ Filtry + wyszukiwanie + szczegóły
+│   ├── ExercisesScreen.tsx            ✅ 30 ćwiczeń + filtry + szczegóły
 │   ├── ExerciseDetailScreen.tsx       ✅ Instrukcje krok po kroku
+│   ├── ActiveWorkoutScreen.tsx        ✅ Pełny flow treningu
 │   ├── TimerScreen.tsx                ✅ Timer interwałowy
 │   └── SettingsScreen.tsx             ✅ Profil + osobowość + język + reset
 ├── services/
-│   ├── store.ts                       ✅ Zustand + persystencja
-│   ├── storage.ts                     ✅ AsyncStorage wrapper
-│   ├── aiService.ts                   ✅ Placeholder + architektura inference
-│   └── exerciseData.ts                ✅ 16 ćwiczeń × 3 języki
+│   ├── store.ts                       ✅ Zustand + AsyncStorage
+│   ├── storage.ts                     ✅ Persystencja
+│   ├── aiService.ts                   ✅ Placeholder + architektura
+│   └── exerciseData.ts                ✅ 30 ćwiczeń × 3 języki
 ```
 
-### Co jest do zrobienia w następnej sesji
+### Następna sesja — priorytety
 
-**Priorytet 1 — Integracja Gemma 4 E4B (na prawdziwym urządzeniu):**
-- [ ] Sprawdzić czy model się pobrał (`/home/arek/fit-bro-ai-offline/models/gemma-4-E4B-it-Q4_K_M.gguf`)
-- [ ] Zainstalować `react-native-llama` lub `llama.cpp` bindings
-- [ ] `npx expo prebuild` — przejście na bare workflow (wymagane dla native modules)
-- [ ] Podłączyć prawdziwy inference w `aiService.ts` (zamienić placeholder)
+**Priorytet 1 — Integracja Gemma 4 E4B:**
+- [ ] Sprawdzić czy model się pobrał (`ls -lah ~/fit-bro-ai-offline/models/*.gguf` — powinien być ~5 GB)
+- [ ] Jeśli nie — wznowić: `cd ~/fit-bro-ai-offline/models && wget -c "https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf" -O gemma-4-E4B-it-Q4_K_M.gguf`
+- [ ] `npx expo prebuild` (bare workflow, wymagane dla native modules)
+- [ ] Zainstalować `llama.rn` (react-native-llama) — bindingil llama.cpp
+- [ ] Podłączyć prawdziwy inference w `aiService.ts`
 - [ ] Testować na urządzeniu mobilnym (min. 6 GB RAM)
 
-**Priorytet 2 — Rozbudowa funkcjonalności:**
-- [ ] Generowanie planów treningowych z AI (structured output JSON)
-- [ ] Ekran aktywnego treningu (lista ćwiczeń z checkboxami, timer per ćwiczenie)
-- [ ] Pose estimation (MediaPipe) — liczenie powtórzeń
-- [ ] Animacje ćwiczeń (Lottie lub proste GIFy)
+**Priorytet 2 — Generowanie planów AI:**
+- [ ] Structured output JSON (constrained decoding) dla planów treningowych
+- [ ] Generowanie planu na podstawie profilu użytkownika i historii
+- [ ] Wyświetlanie wygenerowanego planu w HomeScreen
 
-**Priorytet 3 — TTS/STT:**
-- [ ] Piper TTS — głos trenera
-- [ ] Whisper.cpp — rozpoznawanie mowy
+**Priorytet 3 — Pose Estimation:**
+- [ ] Zainstalować `react-native-mediapipe` lub `expo-camera` + MediaPipe
+- [ ] Liczenie powtórzeń na podstawie kątów stawów
+- [ ] Overlay na kamerze z landmarkami
 
-**Priorytet 4 — Polish:**
-- [ ] SafeAreaView na wszystkich ekranach
+**Priorytet 4 — TTS/STT:**
+- [ ] Piper TTS — głos trenera (PL/DE/EN)
+- [ ] Whisper.cpp — rozpoznawanie mowy (hands-free)
+
+**Priorytet 5 — Polish i UX:**
+- [ ] SafeAreaView konsekwentnie
+- [ ] Animacje (react-native-reanimated)
 - [ ] Haptic feedback
-- [ ] Skeleton loading
-- [ ] Animacje przejść
-- [ ] Dark/light mode toggle
+- [ ] Ikony zamiast emoji w tab barze
 
-### Znane problemy / uwagi
-- Model Gemma 4 E4B (~5 GB) pobiera się do `models/` — jest w `.gitignore`
-- Na laptopie (i5-3317U, 4GB RAM) nie uruchomisz emulatora — testuj na telefonie
-- Expo Go nie obsłuży native modules (llama.cpp) — potrzebny `npx expo prebuild`
-- Dwa procesy pobierania mogły się uruchomić — sprawdzić czy model nie jest uszkodzony (sprawdzić rozmiar ~5 GB)
-
-### Decyzje do podjęcia
-- Biblioteka llama.cpp dla React Native: `react-native-llama` (llama.rn) vs custom native module
-- Kiedy przejść na bare workflow (`npx expo prebuild`)
-- Czy potrzebujemy EAS Build czy local builds wystarczą na MVP
+### Uwagi techniczne
+- Laptop: Wortmann i5-3317U, 4 GB RAM, Ubuntu 24.04 — za mało na emulator
+- Node 20.20.2, Expo SDK latest, React Native 0.84
+- GitHub: https://github.com/Arktoss98/fit-bro-ai-offline
+- Konto GitHub: Arktoss98
+- huggingface-hub zainstalowany (`~/.local/bin/huggingface-cli`)
+- Na tym laptopie xet transfer (HF) zjada za dużo RAM — używać wget do pobierania modeli
 
 ---
 
-## Sesja 1 — 2026-04-19
-
-### Co zostało zrobione
-- Repozytorium GitHub: https://github.com/Arktoss98/fit-bro-ai-offline
-- React Native 0.84 + Expo (blank-typescript)
-- Motyw ciemny, i18n (PL/DE/EN), typy, Zustand store
-- 7 ekranów: onboarding, disclaimer, PAR-Q, profil, home, chat, ćwiczenia, timer
-- 16 ćwiczeń w 8 kategoriach
-- Nawigacja tab (4 taby)
-- 0 błędów TypeScript
+## Sesja 1 — 2026-04-19 (skrót)
+Inicjalizacja repo, React Native + Expo, 7 ekranów, 16 ćwiczeń, i18n, timer, nawigacja.
