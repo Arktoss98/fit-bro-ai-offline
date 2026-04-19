@@ -1,30 +1,48 @@
 {
   "expo": {
-    "name": "fit-bro-ai-offline-temp",
-    "slug": "fit-bro-ai-offline-temp",
-    "version": "1.0.0",
+    "name": "FIT BRO AI",
+    "slug": "fit-bro-ai-offline",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "scheme": "fitbroai",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0D0D0D"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fitbroai.offline",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FIT BRO AI używa kamery do analizy formy ćwiczeń (pose estimation).",
+        "NSMicrophoneUsageDescription": "FIT BRO AI używa mikrofonu do rozpoznawania mowy (hands-free trening).",
+        "NSMotionUsageDescription": "FIT BRO AI używa czujników ruchu do śledzenia aktywności."
+      }
     },
     "android": {
+      "package": "com.fitbroai.offline",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0D0D0D"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "ACTIVITY_RECOGNITION"
+      ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
+    "plugins": [
+      "expo-localization"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }
