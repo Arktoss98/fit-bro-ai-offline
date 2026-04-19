@@ -11,7 +11,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../config/theme';
 import { EXERCISES } from '../services/exerciseData';
-import type { ExerciseCategory } from '../models/types';
+import ExerciseDetailScreen from './ExerciseDetailScreen';
+import type { Exercise, ExerciseCategory } from '../models/types';
 
 const CATEGORIES: (ExerciseCategory | 'all')[] = [
   'all', 'chest', 'back', 'legs', 'shoulders', 'arms', 'core', 'cardio', 'stretching',
@@ -21,7 +22,18 @@ export default function ExercisesScreen() {
   const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const lang = i18n.language as 'pl' | 'de' | 'en';
+
+  // Ekran szczegółów ćwiczenia
+  if (selectedExercise) {
+    return (
+      <ExerciseDetailScreen
+        exercise={selectedExercise}
+        onClose={() => setSelectedExercise(null)}
+      />
+    );
+  }
 
   const filtered = EXERCISES.filter((ex) => {
     const matchesCategory = selectedCategory === 'all' || ex.category === selectedCategory;
@@ -67,14 +79,18 @@ export default function ExercisesScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.exerciseCard}>
+          <TouchableOpacity
+            style={styles.exerciseCard}
+            onPress={() => setSelectedExercise(item)}
+          >
             <View style={styles.exerciseInfo}>
               <Text style={styles.exerciseName}>
                 {item.name[lang] ?? item.name.en}
               </Text>
               <Text style={styles.exerciseMeta}>
                 {t(`exercises.categories.${item.category}`)} ·{' '}
-                {t(`exercises.difficulty.${item.difficulty}`)}
+                {t(`exercises.difficulty.${item.difficulty}`)} ·{' '}
+                {item.caloriesPerMinute} kcal/min
               </Text>
               <View style={styles.muscleRow}>
                 {item.muscleGroups.slice(0, 3).map((m) => (

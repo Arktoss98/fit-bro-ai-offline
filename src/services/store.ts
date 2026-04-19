@@ -6,6 +6,7 @@ import type {
   TimerConfig,
   TrainerPersonality,
 } from '../models/types';
+import * as storage from './storage';
 
 interface AppState {
   // Profil użytkownika
@@ -40,53 +41,93 @@ interface AppState {
   setModelLoaded: (loaded: boolean) => void;
   isGenerating: boolean;
   setGenerating: (generating: boolean) => void;
+
+  // Inicjalizacja z persystencji
+  isHydrated: boolean;
+  hydrate: () => Promise<void>;
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
   // Profil
   profile: null,
-  setProfile: (profile) => set({ profile }),
-  updateProfile: (updates) =>
-    set((state) => ({
-      profile: state.profile ? { ...state.profile, ...updates, updatedAt: new Date().toISOString() } : null,
-    })),
+  setProfile: (profile) => {
+    set({ profile });
+    storage.saveProfile(profile);
+  },
+  updateProfile: (updates) => {
+    const current = get().profile;
+    if (current) {
+      const updated = { ...current, ...updates, updatedAt: new Date().toISOString() };
+      set({ profile: updated });
+      storage.saveProfile(updated);
+    }
+  },
 
   // Chat
   chatMessages: [],
-  addMessage: (message) =>
-    set((state) => ({ chatMessages: [...state.chatMessages, message] })),
-  clearChat: () => set({ chatMessages: [] }),
+  addMessage: (message) => {
+    const updated = [...get().chatMessages, message];
+    set({ chatMessages: updated });
+    storage.saveChatMessages(updated);
+  },
+  clearChat: () => {
+    set({ chatMessages: [] });
+    storage.saveChatMessages([]);
+  },
 
   // Sesja
   currentSession: null,
   startSession: (session) => set({ currentSession: session }),
-  endSession: () =>
-    set((state) => {
-      if (state.currentSession) {
-        return {
-          currentSession: null,
-          workoutHistory: [...state.workoutHistory, state.currentSession],
-        };
-      }
-      return { currentSession: null };
-    }),
+  endSession: () => {
+    const session = get().currentSession;
+    if (session) {
+      const history = [...get().workoutHistory, session];
+      set({ currentSession: null, workoutHistory: history });
+      storage.saveWorkoutHistory(history);
+    } else {
+      set({ currentSession: null });
+    }
+  },
 
   // Historia
   workoutHistory: [],
-  addToHistory: (session) =>
-    set((state) => ({ workoutHistory: [...state.workoutHistory, session] })),
+  addToHistory: (session) => {
+    const history = [...get().workoutHistory, session];
+    set({ workoutHistory: history });
+    storage.saveWorkoutHistory(history);
+  },
 
   // Timer
   timerConfig: { workSeconds: 45, restSeconds: 15, rounds: 8 },
-  setTimerConfig: (config) => set({ timerConfig: config }),
+  setTimerConfig: (config) => {
+    set({ timerConfig: config });
+    storage.saveTimerConfig(config);
+  },
 
   // Osobowość trenera
   trainerPersonality: 'schwarzenegger',
-  setTrainerPersonality: (personality) => set({ trainerPersonality: personality }),
+  setTrainerPersonality: (personality) => {
+    set({ trainerPersonality: personality });
+    storage.saveTrainerPersonality(personality);
+  },
 
   // AI
   isModelLoaded: false,
   setModelLoaded: (loaded) => set({ isModelLoaded: loaded }),
   isGenerating: false,
   setGenerating: (generating) => set({ isGenerating: generating }),
+
+  // Hydratacja — załaduj zapisany stan z AsyncStorage
+  isHydrated: false,
+  hydrate: async () => {
+    const persisted = await storage.loadAllState();
+    set({
+      profile: persisted.profile,
+      workoutHistory: persisted.workoutHistory,
+      chatMessages: persisted.chatMessages,
+      timerConfig: persisted.timerConfig ?? { workSeconds: 45, restSeconds: 15, rounds: 8 },
+      trainerPersonality: persisted.trainerPersonality ?? 'schwarzenegger',
+      isHydrated: true,
+    });
+  },
 }));

@@ -12,19 +12,24 @@ import {
 import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZE, BORDER_RADIUS } from '../config/theme';
 import { useAppStore } from '../services/store';
+import { aiService } from '../services/aiService';
 import type { ChatMessage } from '../models/types';
 
 export default function ChatScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [inputText, setInputText] = useState('');
+  const [streamingText, setStreamingText] = useState('');
   const flatListRef = useRef<FlatList>(null);
 
   const chatMessages = useAppStore((s) => s.chatMessages);
   const addMessage = useAppStore((s) => s.addMessage);
   const isGenerating = useAppStore((s) => s.isGenerating);
+  const setGenerating = useAppStore((s) => s.setGenerating);
   const isModelLoaded = useAppStore((s) => s.isModelLoaded);
+  const profile = useAppStore((s) => s.profile);
+  const trainerPersonality = useAppStore((s) => s.trainerPersonality);
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     const text = inputText.trim();
     if (!text || isGenerating) return;
 
@@ -37,17 +42,47 @@ export default function ChatScreen() {
 
     addMessage(userMessage);
     setInputText('');
+    setGenerating(true);
+    setStreamingText('');
 
-    // TODO: Integracja z Gemma 4 E4B — na razie placeholder
-    setTimeout(() => {
+    try {
+      const systemPrompt = profile
+        ? aiService.buildSystemPrompt(trainerPersonality, profile, i18n.language)
+        : '';
+
+      const history = [...chatMessages, userMessage].slice(-20).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      const response = await aiService.generateResponse(
+        systemPrompt,
+        history,
+        (token) => {
+          setStreamingText((prev) => prev + token);
+        },
+      );
+
+      setStreamingText('');
+
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '🚧 Model AI nie jest jeszcze załadowany. Integracja z Gemma 4 E4B w trakcie implementacji.',
+        content: response,
         timestamp: new Date().toISOString(),
       };
       addMessage(aiMessage);
-    }, 500);
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: '❌ Wystąpił błąd podczas generowania odpowiedzi. Spróbuj ponownie.',
+        timestamp: new Date().toISOString(),
+      };
+      addMessage(errorMessage);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -83,7 +118,7 @@ export default function ChatScreen() {
           {!isModelLoaded && (
             <View style={styles.modelStatus}>
               <Text style={styles.modelStatusText}>
-                Model AI: oczekuje na załadowanie Gemma 4 E4B
+                Model AI: placeholder (Gemma 4 E4B w trakcie integracji)
               </Text>
             </View>
           )}
@@ -96,10 +131,18 @@ export default function ChatScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messageList}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+          ListFooterComponent={
+            streamingText ? (
+              <View style={[styles.messageBubble, styles.aiBubble]}>
+                <Text style={styles.aiLabel}>Trener AI</Text>
+                <Text style={styles.messageText}>{streamingText}▌</Text>
+              </View>
+            ) : null
+          }
         />
       )}
 
-      {isGenerating && (
+      {isGenerating && !streamingText && (
         <View style={styles.thinkingBar}>
           <Text style={styles.thinkingText}>{t('chat.thinking')}</Text>
         </View>
@@ -114,6 +157,7 @@ export default function ChatScreen() {
           placeholderTextColor={COLORS.textMuted}
           multiline
           maxLength={1000}
+          onSubmitEditing={sendMessage}
         />
         <TouchableOpacity
           style={[styles.sendButton, !inputText.trim() && styles.sendDisabled]}
