@@ -76,6 +76,9 @@ src/
 
 **Priorytet 1 — Integracja Gemma 4 E4B:**
 - [x] Model pobrany! `~/fit-bro-ai-offline/models/gemma-4-E4B-it-Q4_K_M.gguf` (4,98 GB)
+- [x] llama.cpp skompilowany: `~/llama.cpp/build/bin/llama-cli`
+- [x] Model przetestowany — generuje odpowiedzi po polsku w stylu Arnolda (~1,7 t/s na i5-3317U)
+- [x] Thinking mode Gemma 4 — wymaga `<think></think>` w prompcie, ale i tak generuje chain-of-thought
 - [ ] `npx expo prebuild` (bare workflow, wymagane dla native modules)
 - [ ] Zainstalować `llama.rn` (react-native-llama) — bindingil llama.cpp
 - [ ] Podłączyć prawdziwy inference w `aiService.ts`
@@ -100,6 +103,14 @@ src/
 - [ ] Animacje (react-native-reanimated)
 - [ ] Haptic feedback
 - [ ] Ikony zamiast emoji w tab barze
+
+### Wnioski z testu modelu na laptopie
+- **Model działa** na i5-3317U/4GB RAM przez mmap + swap
+- **Prędkość**: prefill ~2,4 t/s, generation ~1,7 t/s — za wolno na UX, ale działa
+- **Problem**: Gemma 4 E4B-it ma "konfigurowalny thinking mode" ale ZAWSZE generuje chain-of-thought nawet z pustym `<think></think>`. Zużywa ~300-500 tokenów na myślenie przed odpowiedzią
+- **Rozwiązanie na telefonie**: na SD 8 Gen 3 / A17 Pro będzie 15-30 t/s — thinking + odpowiedź w ~15s
+- **Rozwiązanie na laptopie**: użyć mniejszego modelu E2B (~2,5 GB) lub Gemma 4 E4B bez thinking (jeśli Google udostępni wariant)
+- **llama.cpp**: skompilowany w `~/llama.cpp/build/bin/llama-cli`, działa z GGUF
 
 ### Uwagi techniczne
 - Laptop: Wortmann i5-3317U, 4 GB RAM, Ubuntu 24.04 — za mało na emulator
